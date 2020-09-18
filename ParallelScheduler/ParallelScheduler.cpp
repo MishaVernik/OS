@@ -70,14 +70,13 @@ void EventParallelCheck(std::vector<Process>& data) {
 	vector<std::thread> threads;
 	std::mutex m;
 	int currentGlobalTimer = CommonData::GET_GLOBAL_COUNTER();
-	for (auto& process : data) {	
-		m.lock();
-		threads.push_back(process.ProcessThread(currentGlobalTimer));
-		m.unlock();
+	for (auto& process : data) {			
+		threads.push_back(process.ProcessThread(currentGlobalTimer));		
 	}
+
 	for (auto& thread : threads) {
 		thread.join();
-	}
+	} 
 }
 
 void IncreaseGlobalTimer(std::vector<Process>& data)

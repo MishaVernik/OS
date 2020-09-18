@@ -10,9 +10,12 @@ enum class ProcessStatus {
 	Finished
 };
 
+static std::mutex m;
 
 class Process {
 public:
+
+
 	Process(int number) : number(number) {
 		startTime = 0;
 		workingTime = 0;
@@ -37,6 +40,7 @@ public:
 	void CheckChanges(const int& globalTimer);
 
 	std::thread ProcessThread(const int& globalTimer) {
+		
 		return std::thread(&Process::CheckChanges, this, globalTimer);
 	}
 

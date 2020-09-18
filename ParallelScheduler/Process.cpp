@@ -1,5 +1,6 @@
 #include "Process.h"
 #include "CommonData.h"
+#include <iostream>
 
 void Process::CountWaitingTime() {
 	if (this->staus == ProcessStatus::WaitingIfStarted) {
@@ -23,6 +24,9 @@ bool Process::ChangeStatus(const int& globalTimer)
 
 void Process::CheckChanges(const int& globalTimer)
 {	 
+	std::lock_guard<std::mutex> lock(m);
+	std::cout << this->number << " ";
 	this->ChangeStatus(globalTimer);
 	this->CountWaitingTime();	 
+	 
 }
