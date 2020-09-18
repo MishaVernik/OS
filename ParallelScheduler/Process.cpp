@@ -23,10 +23,13 @@ bool Process::ChangeStatus(const int& globalTimer)
 }
 
 void Process::CheckChanges(const int& globalTimer)
-{	 
+{
 	std::lock_guard<std::mutex> lock(m);
+#ifdef DEBUG
 	std::cout << this->number << " ";
+#endif // DEBUG
+
 	this->ChangeStatus(globalTimer);
-	this->CountWaitingTime();	 
-	 
+	this->CountWaitingTime();
+
 }
