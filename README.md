@@ -2,6 +2,8 @@
 
 OS is a cross platform application that represents all (university labs, NO), shows basic computer processes. 
 
+![ezgif com-gif-maker](https://user-images.githubusercontent.com/41151124/97880081-64fb7d80-1d29-11eb-9f7d-8091a9436c67.gif)
+
 ## Usage
 
 ```
