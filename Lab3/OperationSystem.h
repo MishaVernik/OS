@@ -13,6 +13,7 @@ using namespace std;
 #include <algorithm>
 #include <thread>
 #include <chrono>
+#include <mutex>
 
 class OperationSystem
 {
@@ -21,6 +22,7 @@ private:
     vector<Process> processes;
     int MEMORY_SIZE;
     std::string item = " \t *\t";
+    mutex mx;
 public:
     OperationSystem();
     ~OperationSystem();
@@ -34,6 +36,7 @@ public:
     void ShowAll();
     void ShowAllInRealTime();
     void IncreaseTimer();
+    void getAddress();
 
     std::thread t1;
     int TIMER = 0;

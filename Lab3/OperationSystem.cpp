@@ -25,19 +25,48 @@ std::string OperationSystem::GetProgressBar(float progress){
     return progressBar;
 }
 
+void  OperationSystem::getAddress(){
+
+    this->mx.lock();
+    item = " \t *";
+    int pid;
+    set_cursor_pos(10, 8,  this->item + "Please enter process Id: ");
+    std::cin >> pid;    
+    for (auto process : this->processes){
+        if (process.processId == pid){
+            std::cout << this->item  +  " Start address: ";
+            if (process.segment == nullptr){
+                std::cout <<"This proccess not in the memory!\n";
+            }else{
+                std::cout << this->item  << process.segment->startAddress + process.startAddress << "\n";
+            }
+            
+            break;
+        }
+    }
+    item = " \t *\t";
+    getch();
+    this->mx.unlock();
+}
+
 void OperationSystem::RunSimulation(){
+    this->mx.lock();
     // If the Disk speed much bigger than MEMORY SIZE
-    // then we can say that loading process into memory takes 0 seconds!
-   
-    for (auto& process: this->processes){
-        if (process.endTime < this->TIMER && process.state != ProcessState::NOT_STARTED){
+    // then we can say that loading process into memory takes 0 seconds!   
+   for (auto& process: this->processes){
+        if (process.endTime < this->TIMER && process.state != ProcessState::NOT_STARTED && process.state != ProcessState::FINISHED){
             process.state = ProcessState::FINISHED;
             process.segment->state = State::FREE;
             
             clear_real_time_table();
-        }else if (process.startTime > this->TIMER){
+        }else if (process.startTime > this->TIMER && process.endTime < this->TIMER && process.state == ProcessState::STARTED){
+            process.state = ProcessState::IN_PROGRESS;
+        } 
+    }
+    for (auto& process: this->processes){
+        if (process.startTime > this->TIMER){
             process.state = ProcessState::NOT_STARTED;
-        }else if (process.startTime == this->TIMER){            
+        }else if (process.startTime <= this->TIMER && process.state == ProcessState::NOT_STARTED){                       
             for (auto& segment : this->segments){
                 if (segment.state == State::FREE && segment.size >= process.size){                    
                     segment.process = &process;
@@ -45,7 +74,6 @@ void OperationSystem::RunSimulation(){
                     
                     process.segment = &segment;
                     process.state = ProcessState::STARTED;
-
                     
                     break;
                 }
@@ -53,10 +81,12 @@ void OperationSystem::RunSimulation(){
         }else if (process.startTime > this->TIMER && process.endTime < this->TIMER && process.state == ProcessState::STARTED){
             process.state = ProcessState::IN_PROGRESS;
         } 
-    }  
+    } 
+    this->mx.unlock(); 
 }
  
 void OperationSystem::ShowAllInRealTime(){
+    this->mx.lock();
     this->item = "";
     int column = 7;
     int row = 70;
@@ -69,7 +99,7 @@ void OperationSystem::ShowAllInRealTime(){
         float progress = (segment.process == nullptr || segment.state == State::FREE) ? 0 : (segment.process->size)  / (float)segment.size;
         set_cursor_pos(row,column, string(100, ' '));
         set_cursor_pos(row,column++,  this->item  + to_string(segment.segmentId) + "\t\t" + to_string(segment.startAddress) + "\t\t" + 
-        to_string(segment.endAddress) + "\t\t" + to_string(segment.size) + "\t" + ((segment.process == nullptr || segment.state == State::FREE) ? "-"  : to_string(segment.process->processId)) + "\t" +
+        to_string(segment.endAddress - 1) + "\t\t" + to_string(segment.size) + "\t" + ((segment.process == nullptr || segment.state == State::FREE) ? "-"  : to_string(segment.process->processId)) + "\t" +
         ((segment.state == State::FREE) ?"Free" : "Occupied") + " " +  this->GetProgressBar(progress));          
     }
     column++;
@@ -101,21 +131,24 @@ void OperationSystem::ShowAllInRealTime(){
          to_string(process.processId) +
           "\t\t" +
            to_string(process.startTime) + "\t\t" + to_string(process.endTime) + "\t\t" + to_string(process.startAddress) +
-            "\t\t" + to_string(process.endAddress) + "\t\t" + to_string(process.size) + "\t";
+            "\t\t" + to_string(process.endAddress - 1) + "\t\t" + to_string(process.size) + "\t";
             
         set_cursor_pos(s.size() + row,column, string(state.size() + 120, ' '));
         set_cursor_pos(row,column, s + state + "\n");        
         column++;
     }
      this->item = " \t *\t";
+     this->mx.unlock();
 }
 void OperationSystem::ShowAll(){
 
     cout << "\n"<< this->item << "MEMORY SIZE: " << this->MEMORY_SIZE << "\n";
-    cout << this->item << "Segment ID\tStart address\tEnd address\tSize\tState\n";
+    cout << this->item << "Segment ID\tStart address\tEnd address\tSize\tProcess Id\tState\n";
     for (auto segment : this->segments){
         float progress = (segment.process == nullptr || segment.state == State::FREE) ? 0 : (segment.process->size)  / (float)segment.size;
-        cout << this->item  << segment.segmentId << "\t\t" << segment.startAddress << "\t\t" << segment.endAddress << "\t\t" << segment.size << "\t" << ((segment.state == State::FREE) ?"Free" : "Occupied") << " " + this->GetProgressBar(progress);              
+        cout <<this->item  + to_string(segment.segmentId) + "\t\t" + to_string(segment.startAddress) + "\t\t"  
+        + to_string(segment.endAddress - 1) + "\t\t" + to_string(segment.size) + "\t" + ((segment.process == nullptr || segment.state == State::FREE) ? "-"  : to_string(segment.process->processId)) + "\t" +
+        ((segment.state == State::FREE) ?"Free" : "Occupied") + " " +  this->GetProgressBar(progress);          
     }
     cout << "\n";
     cout << this->item << "Process queue number: " << this->processes.size() << "\n";
@@ -145,7 +178,7 @@ void OperationSystem::ShowAll(){
         cout << this->item  <<
          process.processId <<
           "\t\t" <<
-           process.startTime << "\t\t" << process.endTime << "\t\t" << process.startAddress << "\t\t" << process.endAddress << "\t\t" << process.size << "\t" << state << "\n";        
+           process.startTime << "\t\t" << process.endTime << "\t\t" << process.startAddress << "\t\t" << process.endAddress - 1 << "\t\t" << process.size << "\t" << state << "\n";        
     }
      
 }

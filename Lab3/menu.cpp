@@ -129,7 +129,15 @@ void Menu::show() {
                     this->isRunSimualtion = false;
                     clear_menu();
                     break;
-                case 8:                
+                case 8:         
+                    this->isRunSimualtion = false;
+                    this->print();
+                      
+                    this->operationSystem->getAddress();                            
+                    cin.get();                                
+                    clear_menu();
+                    break;
+                case 9:                
                 default:
                     this->print();
                     exit(0);
@@ -150,7 +158,7 @@ void Menu::RunSimulation(){
             // RUN SYSTEM
             this->operationSystem->RunSimulation();                  
             this->operationSystem->ShowAllInRealTime();
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));                                        
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));                                        
         }        
     }    
 }
