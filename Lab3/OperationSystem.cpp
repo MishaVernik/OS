@@ -34,11 +34,11 @@ void  OperationSystem::getAddress(){
     std::cin >> pid;    
     for (auto process : this->processes){
         if (process.processId == pid){
-            std::cout << this->item  +  " Start address: ";
+            set_cursor_pos(10, 9,  this->item + " Start address: ");             
             if (process.segment == nullptr){
                 std::cout <<"This proccess not in the memory!\n";
             }else{
-                std::cout << this->item  << process.segment->startAddress + process.startAddress << "\n";
+                std::cout << "\t" << process.segment->startAddress + process.startAddress << "\n";
             }
             
             break;
